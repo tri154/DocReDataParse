@@ -153,6 +153,9 @@ def idx_of(arr, item):
     raise Exception("No way.")
 
 
+def printb(s):
+    print(s)
+    input("BLOCKING")
 
 
 
@@ -165,7 +168,7 @@ def transform(file_in, file_out):
         for i_l, line in enumerate(tqdm(lines)): #each document
             per_doc = {}
             line = line.rstrip().split('\t')
-            pmid = line[0]
+            pmid = line[0] # Doc ID
 
             if pmid in pmids:
                 continue
@@ -173,12 +176,14 @@ def transform(file_in, file_out):
             text = line[1]
             prs = chunks(line[2:], 17)
 
-            vertexs = list()#each entity
+            vertexs = list() # each entity
             labels = []
             title = pmid
             sents = [t.split(' ') for t in text.split('|')]
             len_sents = [len(i) for i in sents]
             for p in prs:  # each triplet
+                if p[0] == 'not_include':
+                    continue
                 vertex1 = list() # first entity in the triplet, list of mentions
                 mention_names1 = p[6].split('|')
                 type1 = "CHEM" if p[7] == 'Chemical' else "DISE" if p[7] == 'Disease' else None
@@ -189,7 +194,7 @@ def transform(file_in, file_out):
                 for i in range(len(mention_names1)):
                     p1 = int(positions_start1[i]) - np.sum(len_sents[:int(sent_ids1[i])])
                     p2 = int(positions_end1[i]) - np.sum(len_sents[:int(sent_ids1[i])])
-                    vertex1.append({'pos':[int(p1), int(p2) ],
+                    vertex1.append({'pos': [int(p1), int(p2)],
                                     'type': type1,
                                     'sent_id': int(sent_ids1[i]),
                                     'name': mention_names1[i]
@@ -205,7 +210,7 @@ def transform(file_in, file_out):
                 for i in range(len(mention_names2)):
                     p1 = int(positions_start2[i]) - np.sum(len_sents[:int(sent_ids2[i])])
                     p2 = int(positions_end2[i]) - np.sum(len_sents[:int(sent_ids2[i])])
-                    vertex2.append({'pos':[int(p1), int(p2) ],
+                    vertex2.append({'pos': [int(p1), int(p2)],
                                     'type': type2,
                                     'sent_id': int(sent_ids2[i]),
                                     'name': mention_names2[i]
@@ -219,21 +224,20 @@ def transform(file_in, file_out):
                 # id1 = len(vertexs) - 2
                 # id2 = len(vertexs) - 1
 
-                if p[0] != 'not_include':
-                    r = p[0].split(':')[1]
-                    if p[1] == 'L2R':
-                        h = id1
-                        t = id2
-                    elif p[1] == 'R2L':
-                        h = id2
-                        t = id1
-                    else:
-                        raise Exception('Not provided!')
-                    labels.append({'r': r, 'h': h, 't': t, 'evidence': [None]})
+                r = p[0].split(':')[1]
+                if p[1] == 'L2R':
+                    h = id1
+                    t = id2
+                elif p[1] == 'R2L':
+                    h = id2
+                    t = id1
+                else:
+                    raise Exception('Not provided!')
+                labels.append({'r': r, 'h': h, 't': t, 'evidence': [None]})
 
 
 
-            per_doc['vertexSet']=vertexs
+            per_doc['vertexSet'] = vertexs
             per_doc['labels'] = labels
             per_doc['title'] = title
             per_doc['sents'] = sents
@@ -250,9 +254,11 @@ def transform(file_in, file_out):
 
 
 if __name__ == '__main__':
-    transform('Source/test.data', 'test.json')
-    transform('Source/dev.data', 'dev.json')
-    transform('Source/test.data', 'train.json')
+    transform('data/cdr/original/Source/train_filter.data', 'temp/train.json')
+    transform('data/cdr/original/Source/dev_filter.data', 'temp/dev.json')
+    transform('data/cdr/original/Source/test_filter.data', 'temp/test.json')
+    # transform('Source/dev.data', 'dev.json')
+    # transform('Source/test.data', 'train.json')
 
     # line = "14596845	A diet promoting sugar dependency causes behavioral cross - sensitization to a low dose of amphetamine .|Previous research in this laboratory has shown that a diet of intermittent excessive sugar consumption produces a state with neurochemical and behavioral similarities to drug dependency .|The present study examined whether female rats on various regimens of sugar access would show behavioral cross - sensitization to a low dose of amphetamine .|After a 30 - min baseline measure of locomotor activity ( day 0 ) , animals were maintained on a cyclic diet of 12 - h deprivation followed by 12 - h access to 10 % sucrose solution and chow pellets ( 12 h access starting 4 h after onset of the dark period ) for 21 days .|Locomotor activity was measured again for 30 min at the beginning of days 1 and 21 of sugar access .|Beginning on day 22 , all rats were maintained on ad libitum chow .|Nine days later locomotor activity was measured in response to a single low dose of amphetamine ( 0 . 5 mg / kg ) .|The animals that had experienced cyclic sucrose and chow were hyperactive in response to amphetamine compared with four control groups ( ad libitum 10 % sucrose and chow followed by amphetamine injection , cyclic chow followed by amphetamine injection , ad libitum chow with amphetamine , or cyclic 10 % sucrose and chow with a saline injection ) .|These results suggest that a diet comprised of alternating deprivation and access to a sugar solution and chow produces bingeing on sugar that leads to a long lasting state of increased sensitivity to amphetamine , possibly due to a lasting alteration in the dopamine system .	1:CID:2	R2L	NON-CROSS	202-203	198-199	D000661	amphetamine|amphetamine|amphetamine|amphetamine|amphetamine|amphetamine|amphetamine|amphetamine	Chemical	15:68:178:202:218:225:232:280	16:69:179:203:219:226:233:281	0:2:6:7:7:7:7:8	D006948	behavioral cross - sensitization|behavioral cross - sensitization|hyperactive	Disease	6:59:198	10:63:199	0:2:7	1:CID:2	R2L	NON-CROSS	198-199	194-195	D013395	sucrose|sucrose|sucrose|sucrose	Chemical	106:194:213:238	107:195:214:239	3:7:7:7	D006948	behavioral cross - sensitization|behavioral cross - sensitization|hyperactive	Disease	6:59:198	10:63:199	0:2:7	1:NR:2	R2L	NON-CROSS	15-16	3-5	D000661	amphetamine|amphetamine|amphetamine|amphetamine|amphetamine|amphetamine|amphetamine|amphetamine	Chemical	15:68:178:202:218:225:232:280	16:69:179:203:219:226:233:281	0:2:6:7:7:7:7:8	D019966	sugar dependency|drug dependency	Disease	3:41	5:43	0:1	1:NR:2	R2L	CROSS	106-107	41-43	D013395	sucrose|sucrose|sucrose|sucrose	Chemical	106:194:213:238	107:195:214:239	3:7:7:7	D019966	sugar dependency|drug dependency	Disease	3:41	5:43	0:1	1:NR:2	R2L	CROSS	290-291	41-43	D004298	dopamine	Chemical	290	291	8	D019966	sugar dependency|drug dependency	Disease	3:41	5:43	0:1	1:NR:2	R2L	CROSS	290-291	198-199	D004298	dopamine	Chemical	290	291	8	D006948	behavioral cross - sensitization|behavioral cross - sensitization|hyperactive	Disease	6:59:198	10:63:199	0:2:7"
     #
@@ -271,4 +277,3 @@ if __name__ == '__main__':
     # print(test)
     # print(test[14])
     # print(test[15])
-
