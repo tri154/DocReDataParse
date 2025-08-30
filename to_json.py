@@ -138,10 +138,10 @@ def transform(file_in, file_out, dataset):
         json.dump(output, final)
 
 if __name__ == '__main__':
-    transform('data/cdr/original/Source/train_filter.data', 'cdr_processed/train.json', 'cdr')
-    transform('data/cdr/original/Source/dev_filter.data', 'cdr_processed/dev.json', 'cdr')
-    transform('data/cdr/original/Source/test_filter.data', 'cdr_processed/test.json', 'cdr')
+    transform('data/cdr/train_filter.data', 'cdr_processed/train.json', 'cdr')
+    transform('data/cdr/dev_filter.data', 'cdr_processed/dev.json', 'cdr')
+    transform('data/cdr/test_filter.data', 'cdr_processed/test.json', 'cdr')
 
-    transform('data/gda/original/Source/train.data', 'gda_processed/train.json', 'gda')
-    transform('data/gda/original/Source/dev.data', 'gda_processed/dev.json', 'gda')
-    transform('data/gda/original/Source/test.data', 'gda_processed/test.json', 'gda')
+    transform('data/gda/train.data', 'gda_processed/train.json', 'gda')
+    transform('data/gda/dev.data', 'gda_processed/dev.json', 'gda')
+    transform('data/gda/test.data', 'gda_processed/test.json', 'gda')
