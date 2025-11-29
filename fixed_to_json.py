@@ -1,4 +1,3 @@
-
 import json
 from tqdm import tqdm
 import numpy as np
@@ -169,7 +168,6 @@ import seaborn as sns
 import os
 
 def heat_map(data, out_file):
-    # --- Build matrix ---
     max_l = -1
     for h, t in data.keys():
         max_l = max(max_l, h, t)
@@ -181,11 +179,12 @@ def heat_map(data, out_file):
         h, t = key
         mt[h, t] = tmp
 
-    # --- Create a new figure for each heatmap ---
     plt.figure(figsize=(8, 6))
 
-    # Decide whether to annotate (optional)
-    annot = (mt.size <= 1000)  # annotate only if small (<= 20x20)
+    annot = (mt.size <= 1000)
+    if not annot:
+        mt = mt[:10, :10]
+    annot = True
 
     sns.heatmap(
         mt,
@@ -197,10 +196,8 @@ def heat_map(data, out_file):
     plt.title(out_file)
     plt.tight_layout()
 
-    # --- Save ---
     plt.savefig(out_file + ".jpg", dpi=300)
 
-    # --- Close figure to avoid overlap ---
     plt.close()
 
 def extract_data(json_file):
@@ -211,7 +208,7 @@ def extract_data(json_file):
     for idx, d in enumerate(data):
         labels = d['labels']
         for l in labels:
-            if l['r'] != 'CID':
+            if l['r'] != 'GDA':
                 continue
             h = l['h']
             t = l['t']
@@ -224,9 +221,14 @@ def extract_data(json_file):
 
 
 if __name__ == '__main__':
-    transform('data/cdr/train_filter.data', 'train.json', 'cdr')
-    transform('data/cdr/dev_filter.data', 'dev.json', 'cdr')
-    transform('data/cdr/test_filter.data', 'test.json', 'cdr')
+    # transform('data/cdr/train_filter.data', 'train.json', 'cdr')
+    # transform('data/cdr/dev_filter.data', 'dev.json', 'cdr')
+    # transform('data/cdr/test_filter.data', 'test.json', 'cdr')
+
+
+    transform('data/gda/train.data', 'train.json', 'gda')
+    transform('data/gda/dev.data', 'dev.json', 'gda')
+    transform('data/gda/test.data', 'test.json', 'gda')
 
     train_stat = extract_data('train.json')
     heat_map(train_stat, "train")
@@ -236,7 +238,3 @@ if __name__ == '__main__':
 
     test_stat = extract_data('test.json')
     heat_map(test_stat, "test")
-
-    # transform('data/gda/train.data', 'gda_processed/train.json', 'gda')
-    # transform('data/gda/dev.data', 'gda_processed/dev.json', 'gda')
-    # transform('data/gda/test.data', 'gda_processed/test.json', 'gda')
